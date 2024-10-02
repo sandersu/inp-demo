@@ -7,6 +7,7 @@ const RATING_COLORS = {
 };
 
 interface ExtendedPerformanceEntry extends PerformanceEntry {
+  interactionId?: number;
   target?: EventTarget;
 }
 
@@ -22,6 +23,11 @@ interface InteractionData {
   entries: ExtendedPerformanceEntry[];
 }
 
+// Extend PerformanceObserverInit to allow durationThreshold
+interface CustomPerformanceObserverInit extends PerformanceObserverInit {
+  durationThreshold?: number;
+}
+
 function onInteraction(callback: (data: InteractionData) => void): () => void {
   const valueToRating = (score: number) =>
     score <= 200 ? "good" : score <= 500 ? "needs-improvement" : "poor";
@@ -29,8 +35,9 @@ function onInteraction(callback: (data: InteractionData) => void): () => void {
   const observer = new PerformanceObserver((list) => {
     const interactions: { [key: number]: ExtendedPerformanceEntry[] } = {};
 
-    for (const entry of list.getEntries().filter((entry) => (entry as any).interactionId)) {
-      const interactionId = (entry as any).interactionId;
+    // Cast to ExtendedPerformanceEntry to include interactionId
+    for (const entry of list.getEntries().filter((entry) => (entry as ExtendedPerformanceEntry).interactionId)) {
+      const interactionId = (entry as ExtendedPerformanceEntry).interactionId!;
       interactions[interactionId] = interactions[interactionId] || [];
       interactions[interactionId].push(entry as ExtendedPerformanceEntry);
     }
@@ -56,11 +63,10 @@ function onInteraction(callback: (data: InteractionData) => void): () => void {
     }
   });
 
-  observer.observe({
-    type: "event",
-    durationThreshold: 0,
-    buffered: true
-  });
+  // Using extended PerformanceObserverInit type to include durationThreshold
+  const options: CustomPerformanceObserverInit = { type: "event", buffered: true, durationThreshold: 0 };
+
+  observer.observe(options);
 
   return () => observer.disconnect();
 }
