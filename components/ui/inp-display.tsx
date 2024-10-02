@@ -6,10 +6,17 @@ const RATING_COLORS = {
   good: "#0CCE6A",
   "needs-improvement": "#FFA400",
   poor: "#FF4E42"
-};
+} as const;
 
-function onInteraction(callback) {
-  const valueToRating = (score) =>
+type Rating = keyof typeof RATING_COLORS;
+
+interface InteractionData {
+  value: number;
+  rating: Rating;
+}
+
+function onInteraction(callback: (data: InteractionData) => void): () => void {
+  const valueToRating = (score: number): Rating =>
     score <= 200 ? "good" : score <= 500 ? "needs-improvement" : "poor";
 
   const observer = new PerformanceObserver((list) => {
@@ -22,14 +29,17 @@ function onInteraction(callback) {
     }
   });
 
-  observer.observe({ type: 'event', buffered: true, durationThreshold: 0 });
+  observer.observe({ 
+    type: 'event', 
+    buffered: true
+  });
 
   return () => observer.disconnect();
 }
 
 export default function INPDisplay() {
   const [inpValue, setInpValue] = useState<number | null>(null);
-  const [inpRating, setInpRating] = useState<string | null>(null);
+  const [inpRating, setInpRating] = useState<Rating | null>(null);
 
   useEffect(() => {
     const cleanup = onInteraction(({ value, rating }) => {
@@ -40,8 +50,8 @@ export default function INPDisplay() {
     return cleanup;
   }, []);
 
-  const getRatingColor = (rating: string | null) => {
-    return RATING_COLORS[rating as keyof typeof RATING_COLORS] || 'inherit';
+  const getRatingColor = (rating: Rating | null): string => {
+    return rating ? RATING_COLORS[rating] : 'inherit';
   };
 
   return (
