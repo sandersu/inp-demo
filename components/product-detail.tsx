@@ -41,7 +41,7 @@ export function ProductDetailComponent() {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto">
       <h1 className="text-2xl font-bold mb-4">Product Detail - INP Demo</h1>
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1">

@@ -9,7 +9,6 @@ export default function ProductDetailPage() {
           Back to Home
         </Link>
       </nav>
-      <h1 className="text-3xl font-bold mb-4">Product Detail Page</h1>
       <ProductDetailComponent />
     </div>
   )
