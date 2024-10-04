@@ -1,91 +1,38 @@
-import { useState, useEffect } from 'react';
+'use client'
+
+import { useState, useEffect } from 'react'
 
 const RATING_COLORS = {
   good: "#0CCE6A",
   "needs-improvement": "#FFA400",
   poor: "#FF4E42"
-};
+} as const;
 
-interface ExtendedPerformanceEntry extends PerformanceEntry {
-  interactionId?: number;
-  target?: EventTarget;
+type Rating = keyof typeof RATING_COLORS;
+
+interface INPDisplayProps {
+  lastInteractionTime: number | null;
 }
 
-interface InteractionData {
-  value: number;
-  rating: string;
-  attribution: {
-    eventEntry: ExtendedPerformanceEntry;
-    eventTarget: EventTarget | null;
-    eventTime: number;
-    eventType: string;
-  };
-  entries: ExtendedPerformanceEntry[];
-}
-
-// Extend PerformanceObserverInit to allow durationThreshold
-interface CustomPerformanceObserverInit extends PerformanceObserverInit {
-  durationThreshold?: number;
-}
-
-function onInteraction(callback: (data: InteractionData) => void): () => void {
-  const valueToRating = (score: number) =>
-    score <= 200 ? "good" : score <= 500 ? "needs-improvement" : "poor";
-
-  const observer = new PerformanceObserver((list) => {
-    const interactions: { [key: number]: ExtendedPerformanceEntry[] } = {};
-
-    // Cast to ExtendedPerformanceEntry to include interactionId
-    for (const entry of list.getEntries().filter((entry) => (entry as ExtendedPerformanceEntry).interactionId)) {
-      const interactionId = (entry as ExtendedPerformanceEntry).interactionId!;
-      interactions[interactionId] = interactions[interactionId] || [];
-      interactions[interactionId].push(entry as ExtendedPerformanceEntry);
-    }
-
-    for (const interaction of Object.values(interactions)) {
-      const entry = interaction.reduce((prev, curr) =>
-        prev.duration >= curr.duration ? prev : curr
-      );
-      const entryTarget = interaction.map(entry => entry.target).find(target => !!target);
-      const value = entry.duration;
-
-      callback({
-        attribution: {
-          eventEntry: entry,
-          eventTarget: entryTarget || null,
-          eventTime: entry.startTime,
-          eventType: entry.name
-        },
-        entries: interaction,
-        rating: valueToRating(value),
-        value
-      });
-    }
-  });
-
-  // Using extended PerformanceObserverInit type to include durationThreshold
-  const options: CustomPerformanceObserverInit = { type: "event", buffered: true, durationThreshold: 0 };
-
-  observer.observe(options);
-
-  return () => observer.disconnect();
-}
-
-export default function INPDisplay() {
+export default function INPDisplay({ lastInteractionTime }: INPDisplayProps) {
   const [inpValue, setInpValue] = useState<number | null>(null);
-  const [inpRating, setInpRating] = useState<string | null>(null);
+  const [inpRating, setInpRating] = useState<Rating | null>(null);
 
   useEffect(() => {
-    const cleanup = onInteraction(({ value, rating }) => {
-      setInpValue(value);
-      setInpRating(rating);
-    });
+    if (lastInteractionTime !== null) {
+      setInpValue(lastInteractionTime);
+      setInpRating(getRating(lastInteractionTime));
+    }
+  }, [lastInteractionTime]);
 
-    return cleanup;
-  }, []);
+  const getRating = (value: number): Rating => {
+    if (value <= 200) return "good";
+    if (value <= 500) return "needs-improvement";
+    return "poor";
+  };
 
-  const getRatingColor = (rating: string | null) => {
-    return rating ? RATING_COLORS[rating as keyof typeof RATING_COLORS] : 'inherit';
+  const getRatingColor = (rating: Rating | null): string => {
+    return rating ? RATING_COLORS[rating] : 'inherit';
   };
 
   return (
