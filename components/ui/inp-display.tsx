@@ -36,7 +36,7 @@ export default function INPDisplay({ lastInteractionTime }: INPDisplayProps) {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg">
+    <div className="absolute bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg">
       <h2 className="text-lg font-semibold mb-2">Interaction to Next Paint (INP)</h2>
       {inpValue !== null ? (
         <div>

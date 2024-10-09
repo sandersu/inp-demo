@@ -14,21 +14,31 @@ function blockFor(ms: number) {
 export function ProductDetailComponent() {
   const [color, setColor] = useState<Color>('green')
   const [isChanging, setIsChanging] = useState(false)
-  const [changingColor, setChangingColor] = useState<Color | null>(null)
   const [lastInteractionTime, setLastInteractionTime] = useState<number | null>(null)
 
-  const handleColorChange = useCallback((newColor: Color, delay: number) => {
-    setIsChanging(true)
-    setChangingColor(newColor)
-    
+  const handleColorChange = useCallback(async (newColor: Color, delay: number) => {
     const start = performance.now();
-    blockFor(delay);
-    const end = performance.now();
-
+    setIsChanging(true)
     setColor(newColor)
     setIsChanging(false)
-    setChangingColor(null)
-    setLastInteractionTime(end - start)
+    // Blocking the main thread
+    blockFor(delay);
+    //await scheduler.yield();
+    blockFor(delay);
+    //await scheduler.yield();
+    blockFor(delay);
+    //await scheduler.yield();
+    blockFor(delay);
+    //await scheduler.yield();
+    blockFor(delay);    
+    //await scheduler.yield();
+    blockFor(delay);
+    //await scheduler.yield();
+    blockFor(delay);  
+    //await scheduler.yield();
+    blockFor(delay);            
+    const end = performance.now();
+    setLastInteractionTime(end - start)    
   }, [])
 
   const getColorClasses = (colorName: Color) => {
@@ -66,14 +76,14 @@ export function ProductDetailComponent() {
               Switch to Green (Instant)
             </Button>
             <Button 
-              onClick={() => handleColorChange('orange', 400)} 
+              onClick={() => handleColorChange('orange', 50)} 
               disabled={isChanging || color === 'orange'}
               className={`w-full ${getColorClasses('orange')} text-white`}
             >
               Switch to Orange (400ms delay)
             </Button>
             <Button 
-              onClick={() => handleColorChange('red', 3000)} 
+              onClick={() => handleColorChange('red', 375)} 
               disabled={isChanging || color === 'red'}
               className={`w-full ${getColorClasses('red')} text-white`}
             >
@@ -82,7 +92,7 @@ export function ProductDetailComponent() {
           </div>
           {isChanging && (
             <div className="mt-4 p-2 bg-yellow-100 text-yellow-800 rounded">
-              Changing to {changingColor}...
+              Changing to {color}...
             </div>
           )}
         </div>
